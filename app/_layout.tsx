@@ -1,39 +1,62 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
+import { StyleSheet, Text, View } from "react-native";
+import React, { useEffect } from "react";
+import { Stack, useRouter } from "expo-router";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
+import { User } from "@supabase/supabase-js";
+import { getUserData } from "@/services/userService";
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+const _layout = () => {
+  return (
+    <AuthProvider>
+      <MainLayout />
+    </AuthProvider>
+  );
+};
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
-
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+const MainLayout = () => {
+  const { setAuth, setUserData } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+    supabase.auth.onAuthStateChange((_event, session) => {
+      console.log("session user : ", session?.user?.id);
 
-  if (!loaded) {
-    return null;
-  }
+      if (session) {
+        //set auth
+        //move to home screen
+        setAuth(session?.user);
+        updateUserData(session?.user, session?.user.email);
+        router.replace("/home");
+      } else {
+        //set auth null
+        //move to welcome screen
+        setAuth(null);
+        router.replace("/welcome");
+      }
+    });
+  }, []);
+
+  const updateUserData = async (
+    user: User | null,
+    email: string | undefined
+  ) => {
+    let res = await getUserData(user?.id);
+    console.log("got user data : ", res);
+    if (res.success) {
+      setUserData({ ...res.data, email });
+    }
+  };
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+      }}
+    />
   );
-}
+};
+
+export default _layout;
+
+const styles = StyleSheet.create({});
