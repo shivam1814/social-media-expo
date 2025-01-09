@@ -1,23 +1,64 @@
-import { Alert, Button, Pressable, StyleSheet, Text, View } from "react-native";
-import React from "react";
+import {
+  Alert,
+  Button,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import React, { useEffect, useState } from "react";
 import ScreenWrapper from "@/components/ScreenWrapper";
-import {  useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { hp, wp } from "@/helpers/common";
 import { theme } from "@/constants/theme";
 import Icon from "@/assets/icons";
 import { useRouter } from "expo-router";
 import Avatar from "@/components/Avatar";
+import { fetchPost } from "@/services/postService";
+import PostCard from "@/components/PostCard";
 
 // function isAuthUserData(user: UserType | null): user is authUserData {
 //   return !!user && "image" in user;
 // }
 
+export interface PostProps {
+  body: string;
+  created_at: string;
+  file: string;
+  id: number;
+  user: {
+    id: string;
+    image: string;
+    name: string;
+  };
+  userId: string;
+}
+
+var limit = 0;
+
 const Home = () => {
   const { user, setAuth } = useAuth();
   const router = useRouter();
 
-  console.log("user : ", user);
+  const [post, setPost] = useState<PostProps[]>([]);
+
+  useEffect(() => {
+    getPost();
+  }, []);
+
+  const getPost = async () => {
+    //call api here
+    limit = limit + 10;
+    let res = await fetchPost(limit);
+
+    if (res.success) {
+      setPost(res.data as []);
+    }
+  };
+
+  // console.log("user : ", user);
 
   // const onLogout = async () => {
   //   // setAuth(null);
@@ -59,6 +100,17 @@ const Home = () => {
             </Pressable>
           </View>
         </View>
+
+        {/* posts */}
+        <FlatList
+          data={post}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listStyle}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <PostCard item={item} currentUser={user!!} router={router} />
+          )}
+        />
       </View>
       {/* <Button title="log out" onPress={onLogout} /> */}
     </ScreenWrapper>

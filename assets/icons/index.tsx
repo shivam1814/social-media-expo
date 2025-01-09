@@ -16,6 +16,7 @@ import Location from "./Location";
 import Image from "./Image";
 import Video from "./Video";
 import Delete from "./Delete";
+import ThreeDots from "./ThreeDots";
 
 const icons: Record<string, React.ComponentType<any>> = {
   home: Home,
@@ -32,7 +33,8 @@ const icons: Record<string, React.ComponentType<any>> = {
   location: Location,
   image: Image,
   video:Video,
-  delete:Delete
+  delete:Delete,
+  threeDotsHorizontal:ThreeDots
 };
 
 interface IconInterface {
