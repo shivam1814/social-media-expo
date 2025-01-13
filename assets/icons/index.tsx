@@ -17,6 +17,8 @@ import Image from "./Image";
 import Video from "./Video";
 import Delete from "./Delete";
 import ThreeDots from "./ThreeDots";
+import Comments from "./Comments";
+import Share from "./Share";
 
 const icons: Record<string, React.ComponentType<any>> = {
   home: Home,
@@ -34,7 +36,9 @@ const icons: Record<string, React.ComponentType<any>> = {
   image: Image,
   video:Video,
   delete:Delete,
-  threeDotsHorizontal:ThreeDots
+  threeDotsHorizontal:ThreeDots,
+  comment:Comments,
+  share:Share
 };
 
 interface IconInterface {
@@ -44,6 +48,7 @@ interface IconInterface {
   strokeWidth?: number;
   size?: number;
   color?: string;
+  fill?:string
 }
 
 const Icon: React.FC<IconInterface> = ({
@@ -53,6 +58,7 @@ const Icon: React.FC<IconInterface> = ({
   strokeWidth,
   color = theme.colors.text,
   size = 26,
+  fill = "transparent",
   ...props
 }) => {
   const IconComponents = icons[name];
@@ -64,6 +70,7 @@ const Icon: React.FC<IconInterface> = ({
       strokeWidth={strokeWidth || 1.9}
       color={color}
       size={size || 26}
+      fill = {fill || "transparent"}
       {...props}
     />
   );

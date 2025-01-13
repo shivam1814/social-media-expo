@@ -12,3 +12,7 @@ export const hp = (percentage:any) => {
 export const wp = (percentage:any) => {
     return (percentage*devicewidth)/100;
 }
+
+export const stringHtmlTags = (html:string) => {
+    return html.replace(/<[^>]*>?/gm, '');
+}

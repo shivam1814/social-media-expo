@@ -1,17 +1,28 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import React from "react";
-import { PostProps } from "@/app/(main)/home";
+import {
+  Alert,
+  Share,
+  ShareContent,
+  StyleSheet,
+  Text,
+  ToastAndroid,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import React, { useEffect, useState } from "react";
+import { postLike, PostProps } from "@/app/(main)/home";
 import { authUserData } from "@/contexts/AuthContext";
 import { theme } from "@/constants/theme";
 import Avatar from "./Avatar";
-import { hp, wp } from "@/helpers/common";
+import { hp, stringHtmlTags, wp } from "@/helpers/common";
 import moment from "moment";
 import Icon from "@/assets/icons";
 import { RenderHTML } from "react-native-render-html";
 import HTMLView from "react-native-htmlview";
 import { Image } from "expo-image";
-import { getSupabaseFileUrl } from "@/services/imageService";
+import { downloadFile, getSupabaseFileUrl } from "@/services/imageService";
 import { ResizeMode, Video } from "expo-av";
+import { createPostLike, removePostLike } from "@/services/postService";
+import Loading from "./Loading";
 
 interface PostCardProps {
   item: PostProps;
@@ -38,9 +49,66 @@ const PostCard = ({
     elevation: 1,
   };
 
+  const [likes, setLikes] = useState<postLike[]>([]);
+
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setLikes(item?.postLikes);
+  }, []);
+
   const openPostDetails = () => {};
 
+  const onLike = async () => {
+    if (isLiked) {
+      //remove like
+
+      let updateLikes = likes.filter((like) => like.userId != currentUser?.id);
+
+      setLikes([...updateLikes]);
+      let res = await removePostLike(item?.id, currentUser?.id);
+      console.log("removePostLike res : ", res);
+
+      if (!res.success) {
+        Alert.alert("Post", "Something went wrong!");
+      }
+    } else {
+      //craete like
+      let data: postLike = {
+        userId: currentUser?.id,
+        postId: item?.id,
+      };
+      setLikes([...likes, data]);
+      let res = await createPostLike(data);
+      console.log("addPostLike res : ", res);
+
+      if (!res.success) {
+        Alert.alert("Post", "Something went wrong!");
+      }
+    }
+  };
+
+  const onShare = async () => {
+    let content: ShareContent = {
+      message: stringHtmlTags(item?.body),
+    };
+
+    if (item?.file) {
+      setLoading(true);
+      let fileUrl = await downloadFile(getSupabaseFileUrl(item?.file)?.uri!!);
+      setLoading(false);
+      console.log("fileUrl",fileUrl);
+      content.url = "file://data/user/0/host.exp.exponent/files/1736760097802.png"
+    }
+
+    Share.share(content);
+  };
+
   const createdAt = moment(item?.created_at).format("MMM D");
+
+  const isLiked = likes.filter((like) => like.userId == currentUser?.id)[0]
+    ? true
+    : false;
 
   return (
     <View style={[styles.container, hasShadow && shadowStyle]}>
@@ -97,6 +165,36 @@ const PostCard = ({
             isLooping
           />
         )}
+      </View>
+
+      {/* like, comment and share */}
+      <View style={styles.footer}>
+        <View style={styles.footerButton}>
+          <TouchableOpacity onPress={onLike}>
+            <Icon
+              name="heart"
+              height={24}
+              fill={isLiked ? theme.colors.rose : "transparent"}
+              color={isLiked ? theme.colors.rose : theme.colors.textLight}
+            />
+          </TouchableOpacity>
+          <Text style={styles.count}>{likes?.length}</Text>
+        </View>
+        <View style={styles.footerButton}>
+          <TouchableOpacity>
+            <Icon name="comment" height={24} color={theme.colors.textLight} />
+          </TouchableOpacity>
+          <Text style={styles.count}>{0}</Text>
+        </View>
+        <View style={styles.footerButton}>
+          {loading ? (
+            <Loading size="small" />
+          ) : (
+            <TouchableOpacity onPress={onShare}>
+              <Icon name="share" height={24} color={theme.colors.textLight} />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     </View>
   );

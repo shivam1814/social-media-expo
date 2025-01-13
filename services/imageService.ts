@@ -11,9 +11,9 @@ export const getUserImageSrc = (imagePath: string | undefined) => {
     }
 }
 
-export const getSupabaseFileUrl = (filePath:string) => {
-    if(filePath) {
-        return {uri : `${supabaseUrl}/storage/v1/object/public/uploads/${filePath}`}
+export const getSupabaseFileUrl = (filePath: string) => {
+    if (filePath) {
+        return { uri: `${supabaseUrl}/storage/v1/object/public/uploads/${filePath}` }
     }
     return null;
 }
@@ -40,7 +40,7 @@ export const uploadFile = async (folderName: string, fileUri: string, isImage = 
             return { success: false, msg: "could not upload media" }
         }
 
-        console.log("data upload image : ",data);
+        console.log("data upload image : ", data);
 
         return { success: true, data: data.path }
     } catch (error) {
@@ -48,6 +48,20 @@ export const uploadFile = async (folderName: string, fileUri: string, isImage = 
         return { success: false, msg: "could not upload media" }
     }
 
+}
+
+export const downloadFile = async (url: string) => {
+    try {
+        const { uri } = await FileSystem.downloadAsync(url, getLocalFilePath(url));
+        return uri;
+    } catch (error) {
+        return null;
+    }
+}
+
+export const getLocalFilePath = (filePath: string) => {
+    let fileName = filePath.split('/').pop();
+    return `${FileSystem.documentDirectory}${fileName}`
 }
 
 export const getFilePath = (folderName: string, isImage: boolean): string => {
