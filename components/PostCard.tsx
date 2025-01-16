@@ -23,12 +23,15 @@ import { downloadFile, getSupabaseFileUrl } from "@/services/imageService";
 import { ResizeMode, Video } from "expo-av";
 import { createPostLike, removePostLike } from "@/services/postService";
 import Loading from "./Loading";
+import * as Sharing from "expo-sharing";
+import * as FileSystem from "expo-file-system";
 
 interface PostCardProps {
   item: PostProps;
   currentUser: authUserData;
   router: any;
   hasShadow?: boolean;
+  showMoreIcon?: boolean;
 }
 
 const PostCard = ({
@@ -36,6 +39,7 @@ const PostCard = ({
   currentUser,
   router,
   hasShadow = true,
+  showMoreIcon = true,
 }: PostCardProps) => {
   console.log("post item : ", item);
 
@@ -57,7 +61,10 @@ const PostCard = ({
     setLikes(item?.postLikes);
   }, []);
 
-  const openPostDetails = () => {};
+  const openPostDetails = () => {
+    if (!showMoreIcon) return null;
+    router.push({ pathname: "postDetail", params: { postID: item?.id } });
+  };
 
   const onLike = async () => {
     if (isLiked) {
@@ -89,19 +96,34 @@ const PostCard = ({
   };
 
   const onShare = async () => {
-    let content: ShareContent = {
-      message: stringHtmlTags(item?.body),
-    };
+    // let content: ShareContent = {
+    //   message: stringHtmlTags(item?.body),
+    // };
+
+    // Sharing.isAvailableAsync()
+
+    if (!(await Sharing.isAvailableAsync())) {
+      Alert.alert("Sharing is not available on this platform");
+      return;
+    }
 
     if (item?.file) {
       setLoading(true);
       let fileUrl = await downloadFile(getSupabaseFileUrl(item?.file)?.uri!!);
       setLoading(false);
-      console.log("fileUrl",fileUrl);
-      content.url = "file://data/user/0/host.exp.exponent/files/1736760097802.png"
-    }
+      console.log("fileUrl", fileUrl);
+      Sharing.shareAsync(fileUrl!!);
+    } else {
+      let content: ShareContent = {
+        message: stringHtmlTags(item?.body),
+      };
 
-    Share.share(content);
+      Share.share(content);
+
+      // Sharing.shareAsync("",{
+      //   dialogTitle:"file is synced",
+      // })
+    }
   };
 
   const createdAt = moment(item?.created_at).format("MMM D");
@@ -126,14 +148,16 @@ const PostCard = ({
           </View>
         </View>
 
-        <TouchableOpacity onPress={openPostDetails}>
-          <Icon
-            name="threeDotsHorizontal"
-            size={hp(3.4)}
-            strokeWidth={3}
-            color={theme.colors.text}
-          />
-        </TouchableOpacity>
+        {showMoreIcon && (
+          <TouchableOpacity onPress={openPostDetails}>
+            <Icon
+              name="threeDotsHorizontal"
+              size={hp(3.4)}
+              strokeWidth={3}
+              color={theme.colors.text}
+            />
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* post body & media */}
@@ -181,7 +205,7 @@ const PostCard = ({
           <Text style={styles.count}>{likes?.length}</Text>
         </View>
         <View style={styles.footerButton}>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={openPostDetails}>
             <Icon name="comment" height={24} color={theme.colors.textLight} />
           </TouchableOpacity>
           <Text style={styles.count}>{0}</Text>

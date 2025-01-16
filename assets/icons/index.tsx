@@ -19,6 +19,7 @@ import Delete from "./Delete";
 import ThreeDots from "./ThreeDots";
 import Comments from "./Comments";
 import Share from "./Share";
+import SentIcon from "./Send";
 
 const icons: Record<string, React.ComponentType<any>> = {
   home: Home,
@@ -38,7 +39,8 @@ const icons: Record<string, React.ComponentType<any>> = {
   delete:Delete,
   threeDotsHorizontal:ThreeDots,
   comment:Comments,
-  share:Share
+  share:Share,
+  send:SentIcon
 };
 
 interface IconInterface {

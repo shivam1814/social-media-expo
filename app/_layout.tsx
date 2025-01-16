@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import React, { useEffect } from "react";
 import { Stack, useRouter } from "expo-router";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { AuthProvider, authUserData, useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { User } from "@supabase/supabase-js";
 import { getUserData } from "@/services/userService";
@@ -25,7 +25,7 @@ const MainLayout = () => {
       if (session) {
         //set auth
         //move to home screen
-        setAuth(session?.user);
+        setAuth(session?.user as authUserData);
         updateUserData(session?.user, session?.user.email);
         router.replace("/home");
       } else {
@@ -53,7 +53,14 @@ const MainLayout = () => {
       screenOptions={{
         headerShown: false,
       }}
-    />
+    >
+      <Stack.Screen
+        name="(main)/postDetail"
+        options={{
+          presentation: "modal",
+        }}
+      />
+    </Stack>
   );
 };
 
