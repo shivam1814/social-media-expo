@@ -32,8 +32,13 @@ export interface postLike {
   userId: string;
 }
 
+interface comments {
+  count: number;
+}
+
 export interface PostProps {
   body: string;
+  comments: comments[];
   created_at: string;
   file: string;
   id: number;
@@ -64,6 +69,21 @@ const Home = () => {
     }
   };
 
+  // const handleUpdateCommentCount = async (cmtPayLoad: any) => {
+  //   if (cmtPayLoad.eventType == "DELETE" && cmtPayLoad?.new?.id) {
+  //     console.log("resNewComment : ",cmtPayLoad.new);
+  //     if (cmtPayLoad.new) {
+  //       let newComment = { ...cmtPayLoad.new };
+  //       let res = await getUserData(newComment.userId);
+  //       newComment.user = res.success ? res.data : {};
+  //       console.log("resNewComment : ",res);
+  //       // setPost((prevPost) => {
+  //       //   prevPost.filter((item) => item.comments.filter((item) => item.))
+  //       // })
+  //     }
+  //   }
+  // };
+
   useEffect(() => {
     let postChannel = supabase
       .channel("posts")
@@ -76,8 +96,22 @@ const Home = () => {
 
     // getPost();
 
+    // let cmtChannel = supabase
+    //   .channel("homePostComment")
+    //   .on(
+    //     "postgres_changes",
+    //     {
+    //       event: "*",
+    //       schema: "public",
+    //       table: "comments",
+    //     },
+    //     handleUpdateCommentCount
+    //   )
+    //   .subscribe();
+
     return () => {
       supabase.removeChannel(postChannel);
+      // supabase.removeChannel(cmtChannel);
     };
   }, []);
 
@@ -90,7 +124,7 @@ const Home = () => {
 
     console.log("post fetched : ", limit);
     let res = await fetchPost(limit);
-
+    console.log("postFecth response : ", res);
     if (res.success) {
       if (post.length == res.data?.length) {
         setHasMore(false);

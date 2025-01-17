@@ -39,7 +39,7 @@ export const fetchPost = async (limit = 10) => {
 
         const { data, error } = await supabase
             .from('posts')
-            .select('* , user : users (id,name,image) , postLikes (*)')
+            .select('* , user : users (id,name,image) , postLikes (*) , comments (count)')
             .order('created_at', { ascending: false })
             .limit(limit);
 
@@ -56,13 +56,14 @@ export const fetchPost = async (limit = 10) => {
     }
 }
 
-export const fetchPostDetails = async (postId:string) => {
+export const fetchPostDetails = async (postId: string) => {
     try {
 
         const { data, error } = await supabase
             .from('posts')
-            .select('* , user : users (id,name,image) , postLikes (*)')
-            .eq('id',postId)
+            .select('* , user : users (id,name,image) , postLikes (*), comments (* , user : users (id,name,image))')
+            .eq('id', postId)
+            .order("created_at", { ascending: false, foreignTable: "comments" })
             .single();
 
         if (error) {
@@ -108,8 +109,8 @@ export const removePostLike = async (postId: number, userId: string | undefined)
         const { error } = await supabase
             .from("postLikes")
             .delete()
-            .eq('userId',userId)
-            .eq('postId',postId)
+            .eq('userId', userId)
+            .eq('postId', postId)
 
         if (error) {
             console.log("postLike error : ", error);
@@ -123,6 +124,7 @@ export const removePostLike = async (postId: number, userId: string | undefined)
         return { success: false, msg: 'Could not remove the post like.' }
     }
 }
+
 
 export const createComment = async (comment: any) => {
     try {
@@ -143,5 +145,27 @@ export const createComment = async (comment: any) => {
     } catch (error) {
         console.log("comment error : ", error);
         return { success: false, msg: 'Could not create your comment.' }
+    }
+}
+
+
+export const removeComment = async (commentId:number) => {
+    try {
+
+        const { error } = await supabase
+            .from("comments")
+            .delete()
+            .eq('id', commentId)
+
+        if (error) {
+            console.log("removeComment error : ", error);
+            return { success: false, msg: 'Could not delete comment.' }
+        }
+
+        return { success: true, data : {commentId}}
+
+    } catch (error) {
+        console.log("removeComment error : ", error);
+        return { success: false, msg: 'Could not delete comment.' }
     }
 }

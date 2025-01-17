@@ -126,6 +126,8 @@ const PostCard = ({
     }
   };
 
+  // console.log("post item comments : ", item?.comments);
+
   const createdAt = moment(item?.created_at).format("MMM D");
 
   const isLiked = likes.filter((like) => like.userId == currentUser?.id)[0]
@@ -208,7 +210,7 @@ const PostCard = ({
           <TouchableOpacity onPress={openPostDetails}>
             <Icon name="comment" height={24} color={theme.colors.textLight} />
           </TouchableOpacity>
-          <Text style={styles.count}>{0}</Text>
+          <Text style={styles.count}>{item?.comments[0]?.count}</Text>
         </View>
         <View style={styles.footerButton}>
           {loading ? (

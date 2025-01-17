@@ -9,15 +9,50 @@ import {
 } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { createComment, fetchPostDetails } from "@/services/postService";
+import {
+  createComment,
+  fetchPostDetails,
+  removeComment,
+} from "@/services/postService";
 import { hp, wp } from "@/helpers/common";
 import { theme } from "@/constants/theme";
 import PostCard from "@/components/PostCard";
 import { useAuth } from "@/contexts/AuthContext";
-import { postLike, PostProps } from "./home";
 import Loading from "@/components/Loading";
 import Input from "@/components/Input";
 import Icon from "@/assets/icons";
+import { postLike } from "./home";
+import CommentItem from "@/components/CommentItem";
+import { supabase } from "@/lib/supabase";
+import { getUserData } from "@/services/userService";
+
+export interface comments {
+  created_at: string;
+  id: number;
+  postId: number;
+  text: string;
+  user: {
+    id: string;
+    image: string;
+    name: string;
+  };
+  userId: string;
+}
+
+interface PostDetailProps {
+  body: string;
+  comments: comments[];
+  created_at: string;
+  file: string;
+  id: number;
+  postLikes: postLike[];
+  user: {
+    id: string;
+    image: string;
+    name: string;
+  };
+  userId: string;
+}
 
 const PostDetail = () => {
   const { postID } = useLocalSearchParams<{ postID: string }>();
@@ -28,10 +63,45 @@ const PostDetail = () => {
   const commentRef = useRef("");
   const [loading, setLoading] = useState(false);
 
-  const [post, setPost] = useState<PostProps>();
+  const [post, setPost] = useState<PostDetailProps>();
+
+  console.log("post details : ", post);
+
+  const handleCommentEvent = async (payload: any) => {
+    console.log("got new comment : ", payload.new);
+    if (payload.new) {
+      let newComment = { ...payload.new };
+      let res = await getUserData(newComment.userId);
+      newComment.user = res.success ? res.data : {};
+      setPost((prevPost) => {
+        return {
+          ...prevPost!,
+          comments: [newComment, ...prevPost?.comments!],
+        };
+      });
+    }
+  };
 
   useEffect(() => {
+    let commentsChannel = supabase
+      .channel("comments")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "comments",
+          filter: `postId=eq.${postID}`,
+        },
+        handleCommentEvent
+      )
+      .subscribe();
+
     getPostDetails();
+
+    return () => {
+      supabase.removeChannel(commentsChannel);
+    };
   }, []);
 
   const getPostDetails = async () => {
@@ -68,10 +138,39 @@ const PostDetail = () => {
     }
   };
 
+  const onDeleteComment = async (comment: comments) => {
+    console.log("delete comment : ", comment);
+    let res = await removeComment(comment?.id);
+    if (res.success) {
+      setPost((prevPost) => {
+        let updatedPost = { ...prevPost! };
+        updatedPost.comments = updatedPost.comments?.filter(
+          (c) => c.id != comment.id
+        );
+        return updatedPost;
+      });
+    } else {
+      Alert.alert("Comment", res.msg);
+    }
+  };
+
   if (startLoading) {
     return (
       <View style={styles.center}>
         <Loading />
+      </View>
+    );
+  }
+
+  if (!post) {
+    return (
+      <View
+        style={[
+          styles.center,
+          { justifyContent: "flex-start", marginTop: 100 },
+        ]}
+      >
+        <Text style={styles.notFound}>Post not found !</Text>
       </View>
     );
   }
@@ -83,7 +182,7 @@ const PostDetail = () => {
         contentContainerStyle={styles.list}
       >
         <PostCard
-          item={post!}
+          item={{ ...post!, comments: [{ count: post?.comments?.length! }] }}
           currentUser={user!}
           router={router}
           hasShadow={false}
@@ -112,6 +211,24 @@ const PostDetail = () => {
             <TouchableOpacity style={styles.sendIcon} onPress={onNewComment}>
               <Icon name="send" color={theme.colors.primaryDark} />
             </TouchableOpacity>
+          )}
+        </View>
+
+        {/* comments list */}
+        <View style={{ marginVertical: 15, gap: 17 }}>
+          {post?.comments?.map((comment) => (
+            <CommentItem
+              key={comment?.id.toString()}
+              item={comment}
+              onDelete={onDeleteComment}
+              canDelete={user?.id == comment.userId || user?.id == post.userId}
+            />
+          ))}
+
+          {post?.comments?.length == 0 && (
+            <Text style={{ color: theme.colors.text, marginLeft: 5 }}>
+              Be first to comment!
+            </Text>
           )}
         </View>
       </ScrollView>
