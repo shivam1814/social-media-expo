@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ScreenWrapper from "@/components/ScreenWrapper";
 import Header from "@/components/Header";
 import { theme } from "@/constants/theme";
@@ -16,7 +16,7 @@ import { hp, wp } from "@/helpers/common";
 import { useAuth } from "@/contexts/AuthContext";
 import Avatar from "@/components/Avatar";
 import RichTextEditor from "@/components/RichTextEditor";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import Icon from "@/assets/icons";
 import Button from "@/components/Button";
 import * as ImagePicker from "expo-image-picker";
@@ -24,16 +24,48 @@ import { getSupabaseFileUrl } from "@/services/imageService";
 import { Audio, ResizeMode, Video } from "expo-av";
 import { createOrUpdatePost } from "@/services/postService";
 import { RichEditor } from "react-native-pell-rich-editor";
+import { PostProps } from "./home";
+import { supabaseUrl } from "@/constants";
 
 const NewPost = () => {
+  const { data } = useLocalSearchParams<{ data: string }>();
+  console.log("newPost post : ", data);
+  let post: PostProps | null = null;
+  if (data != undefined) {
+    post = JSON.parse(data);
+  }
+
+  console.log("editPost : ", post);
+
   const { user } = useAuth();
   const bodyRef = useRef("");
   const editorRef = useRef<RichEditor | null>(null);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<null | ImagePicker.ImagePickerAsset>(null);
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (post && post.id) {
+      bodyRef.current = post.body;
+      // if (typeof post.file === "string") {
+      //   setFile({
+      //     uri: post.file,
+      //     width: 100,
+      //     height: 100,
+      //   });
+      // } else {
+      //   setFile(post.file);
+      // }
+      setFileUrl(post.file);
+      setTimeout(() => {
+        editorRef?.current?.setContentHTML(post.body);
+      }, 300);
+    }
+  }, []);
 
   const onPick = async (isImage: boolean) => {
+    
     let mediaConfig: ImagePicker.ImagePickerOptions = {
       mediaTypes: ["images"],
       allowsEditing: true,
@@ -51,6 +83,7 @@ const NewPost = () => {
     let result = await ImagePicker.launchImageLibraryAsync(mediaConfig);
 
     if (!result.canceled) {
+      setFileUrl(null);
       setFile(result.assets[0]);
     }
   };
@@ -89,17 +122,53 @@ const NewPost = () => {
     return getSupabaseFileUrl(file.toString())?.uri;
   };
 
+  const getSupaFile = (fileUrl: string) => {
+    return `${supabaseUrl}/storage/v1/object/public/uploads/${fileUrl}`;
+  };
+
   const onSubmit = async () => {
     if (!bodyRef.current && !file) {
       Alert.alert("Post", "please select an image or add body.");
       return;
     }
 
-    let data = {
-      file,
-      body: bodyRef.current,
-      userId: user?.id,
-    };
+    // let data = {
+    //   file,
+    //   body: bodyRef.current,
+    //   userId: user?.id,
+    // };
+
+    let data = {}
+
+    if (post && post.id) {
+      //if we pass fileUrl then it will not update post because column name is 'file'
+      
+      if(fileUrl) {
+        const file = fileUrl
+        data = {
+          file,
+          body: bodyRef.current,
+          userId: user?.id,
+          id: post.id,
+        };
+        
+      } else {
+        data = {
+          file,
+          body: bodyRef.current,
+          userId: user?.id,
+          id: post.id,
+        };
+      }
+      
+      
+    } else {
+      data = {
+        file,
+        body: bodyRef.current,
+        userId: user?.id,
+      };
+    }
 
     //create post
     setLoading(true);
@@ -108,12 +177,12 @@ const NewPost = () => {
     console.log("post res : ", res);
 
     if (res.success) {
-      setFile(null)
+      setFile(null);
       bodyRef.current = "";
       editorRef?.current?.setContentHTML("");
       router.back();
     } else {
-      Alert.alert("Post",res.msg)
+      Alert.alert("Post", res.msg);
     }
 
     // console.log("body : ", bodyRef.current);
@@ -123,7 +192,7 @@ const NewPost = () => {
   return (
     <ScreenWrapper bg="white">
       <View style={styles.container}>
-        <Header title="Create Post" />
+        <Header title={post && post.id ? "Update Post" : "Create Post"} />
         <ScrollView contentContainerStyle={{ gap: 20 }}>
           {/* avatar */}
           <View style={styles.header}>
@@ -163,8 +232,37 @@ const NewPost = () => {
                   style={{ flex: 1 }}
                 />
               )}
-
               <Pressable style={styles.closeIcon} onPress={() => setFile(null)}>
+                <Icon name="delete" height={20} color="white" />
+              </Pressable>
+            </View>
+          )}
+
+          {fileUrl && (
+            <View style={styles.file}>
+              {fileUrl.includes("postImages") ? (
+                <Image
+                  source={{
+                    uri: getSupaFile(fileUrl),
+                  }}
+                  resizeMode="cover"
+                  style={{ flex: 1 }}
+                />
+              ) : (
+                <Video
+                  style={{ flex: 1 }}
+                  source={{
+                    uri: getSupaFile(fileUrl),
+                  }}
+                  useNativeControls
+                  resizeMode={ResizeMode.COVER}
+                  isLooping
+                />
+              )}
+              <Pressable
+                style={styles.closeIcon}
+                onPress={() => setFileUrl(null)}
+              >
                 <Icon name="delete" height={20} color="white" />
               </Pressable>
             </View>
@@ -185,7 +283,7 @@ const NewPost = () => {
 
         <Button
           buttonStyle={{ height: hp(7.2) }}
-          title="Post"
+          title={post && post.id ? "Update" : "Post"}
           loading={loading}
           hasShadow={false}
           onPress={onSubmit}

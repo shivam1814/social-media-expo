@@ -8,13 +8,12 @@ import moment from "moment";
 import Icon from "@/assets/icons";
 
 interface CommentProps {
-  key: string;
   item: comments;
   canDelete: boolean;
   onDelete : (item:comments) => void
 }
 
-const CommentItem = ({ key, item, canDelete = false ,onDelete = (item:comments) => {}}: CommentProps) => {
+const CommentItem = ({ item, canDelete = false ,onDelete = (item:comments) => {}}: CommentProps) => {
   const createdAt = moment(item?.created_at).format("MMM D");
 
   const handleDelete = async () => {

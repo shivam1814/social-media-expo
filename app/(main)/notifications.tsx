@@ -5,7 +5,7 @@ import ScreenWrapper from "@/components/ScreenWrapper";
 const Notifications = () => {
   return (
     <ScreenWrapper>
-      <Text>Notifications</Text>
+      <Text>Notificationsssss</Text>
     </ScreenWrapper>
   );
 };

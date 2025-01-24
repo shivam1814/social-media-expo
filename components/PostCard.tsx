@@ -32,6 +32,9 @@ interface PostCardProps {
   router: any;
   hasShadow?: boolean;
   showMoreIcon?: boolean;
+  showDelete?: boolean;
+  onDelete?: (item:PostProps) => void;
+  onEdit?: (item:PostProps) => void;
 }
 
 const PostCard = ({
@@ -40,6 +43,9 @@ const PostCard = ({
   router,
   hasShadow = true,
   showMoreIcon = true,
+  showDelete = false,
+  onDelete = (item:PostProps) => {},
+  onEdit = (item:PostProps) => {},
 }: PostCardProps) => {
   console.log("post item : ", item);
 
@@ -126,6 +132,21 @@ const PostCard = ({
     }
   };
 
+  const handlePostDelete = () => {
+    Alert.alert("Confirm", "Are you sure you want to delete this post?", [
+            {
+              text: "Cancel",
+              onPress: () => console.log("modal cancel"),
+              style: "cancel",
+            },
+            {
+              text: "Delete",
+              onPress: () => onDelete(item),
+              style: "destructive",
+            },
+          ]);
+  }
+
   // console.log("post item comments : ", item?.comments);
 
   const createdAt = moment(item?.created_at).format("MMM D");
@@ -159,6 +180,17 @@ const PostCard = ({
               color={theme.colors.text}
             />
           </TouchableOpacity>
+        )}
+
+        {showDelete && currentUser.id == item?.userId && (
+          <View style={styles.actions}>
+            <TouchableOpacity onPress={() => onEdit(item)}>
+              <Icon name="edit" height={hp(2.4)} color={theme.colors.text} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handlePostDelete}>
+              <Icon name="delete" height={hp(2.5)} color={theme.colors.roseLight} />
+            </TouchableOpacity>
+          </View>
         )}
       </View>
 

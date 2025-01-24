@@ -13,6 +13,7 @@ import {
   createComment,
   fetchPostDetails,
   removeComment,
+  removePost,
 } from "@/services/postService";
 import { hp, wp } from "@/helpers/common";
 import { theme } from "@/constants/theme";
@@ -21,10 +22,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import Loading from "@/components/Loading";
 import Input from "@/components/Input";
 import Icon from "@/assets/icons";
-import { postLike } from "./home";
+import { postLike, PostProps } from "./home";
 import CommentItem from "@/components/CommentItem";
 import { supabase } from "@/lib/supabase";
 import { getUserData } from "@/services/userService";
+import { createNotification } from "@/services/notificationService";
 
 export interface comments {
   created_at: string;
@@ -131,6 +133,17 @@ const PostDetail = () => {
     let res = await createComment(data);
     setLoading(false);
     if (res.success) {
+      
+      if(user?.id != post?.userId) {
+        //send notification
+        let notify = {
+          senderId : user?.id,
+          receiverId : post?.userId,
+          title : 'commented on post',
+          data:JSON.stringify({postId:post?.id,commentId:res?.data?.id})
+        }
+        
+      }
       inputRef?.current?.clear();
       commentRef.current = "";
     } else {
@@ -152,6 +165,25 @@ const PostDetail = () => {
     } else {
       Alert.alert("Comment", res.msg);
     }
+  };
+
+  const onDeletePost = async (item: PostProps) => {
+    // console.log("delete post : ", item);
+    let res = await removePost(post!.id);
+    if (res.success) {
+      router.back();
+    } else {
+      Alert.alert("Post", res.msg);
+    }
+  };
+
+  const onEditPost = async (item: PostProps) => {
+    console.log("edit post : ", item!);
+    router.back();
+    router.push({
+      pathname: "/newPost",
+      params: { data: JSON.stringify(item) },
+    });
   };
 
   if (startLoading) {
@@ -187,6 +219,9 @@ const PostDetail = () => {
           router={router}
           hasShadow={false}
           showMoreIcon={false}
+          showDelete={true}
+          onDelete={onDeletePost}
+          onEdit={onEditPost}
         />
 
         {/* comment input */}

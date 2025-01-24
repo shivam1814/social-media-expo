@@ -61,28 +61,53 @@ const Home = () => {
   const [hasMore, setHasMore] = useState(true);
 
   const handlePostEvent = async (payLoad: any) => {
+    // console.log("postPayLoad : ", payLoad);
     if (payLoad.eventType == "INSERT" && payLoad?.new?.id) {
       let newPost = { ...payLoad.new };
       let res = await getUserData(newPost?.userId);
+      newPost.postLikes = [];
+      newPost.comments = [{ count: 0 }];
       newPost.user = res.success ? res.data : {};
       setPost((prevPost) => [newPost, ...prevPost]);
     }
+    if (payLoad.eventType == "DELETE" && payLoad?.old?.id) {
+      setPost((prevPosts) => {
+        let updatedPost = prevPosts.filter(
+          (post) => post.id != payLoad?.old?.id
+        );
+        return updatedPost;
+      });
+    }
+    if (payLoad.eventType == "UPDATE" && payLoad?.new?.id) {
+      setPost((prevPost) => {
+        let updatedPost = prevPost.map((post) => {
+          if (post.id == payLoad?.new?.id) {
+            post.body = payLoad?.new?.body;
+            post.file = payLoad?.new?.file;
+          }
+          return post;
+        });
+        return updatedPost;
+      });
+    }
   };
 
-  // const handleUpdateCommentCount = async (cmtPayLoad: any) => {
-  //   if (cmtPayLoad.eventType == "DELETE" && cmtPayLoad?.new?.id) {
-  //     console.log("resNewComment : ",cmtPayLoad.new);
-  //     if (cmtPayLoad.new) {
-  //       let newComment = { ...cmtPayLoad.new };
-  //       let res = await getUserData(newComment.userId);
-  //       newComment.user = res.success ? res.data : {};
-  //       console.log("resNewComment : ",res);
-  //       // setPost((prevPost) => {
-  //       //   prevPost.filter((item) => item.comments.filter((item) => item.))
-  //       // })
-  //     }
-  //   }
-  // };
+  const handleUpdateCommentCount = async (cmtPayLoad: any) => {
+    console.log("cmtPayLoad : ", cmtPayLoad);
+    console.log("cmtPayLoad new : ", cmtPayLoad.new);
+    //need to implement
+
+    // if (cmtPayLoad.eventType == "DELETE" && cmtPayLoad?.new?.id) {
+    //   setPost((prevPost) => {
+    //     let updatedPost = { ...prevPost! };
+    //     updatedPost.filter((c) => c.id == )
+    //     updatedPost.comments = updatedPost.comments?.filter(
+    //       (c) => c.id != comment.id
+    //     );
+    //     return updatedPost;
+    //   });
+    // }
+  };
 
   useEffect(() => {
     let postChannel = supabase
@@ -120,7 +145,7 @@ const Home = () => {
 
     if (!hasMore) return null;
 
-    limit = limit + 4;
+    limit = limit + 10;
 
     console.log("post fetched : ", limit);
     let res = await fetchPost(limit);

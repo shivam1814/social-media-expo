@@ -1,12 +1,13 @@
 import {
   Alert,
+  FlatList,
   Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import React from "react";
+import React, { useState } from "react";
 import ScreenWrapper from "@/components/ScreenWrapper";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "expo-router";
@@ -16,16 +17,42 @@ import Icon from "@/assets/icons";
 import { theme } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
 import Avatar from "@/components/Avatar";
+import { PostProps } from "./home";
+import { fetchPost, fetchUserPost } from "@/services/postService";
+import PostCard from "@/components/PostCard";
+import Loading from "@/components/Loading";
 
+var limit = 0;
 const Profile = () => {
   const { user, setAuth } = useAuth();
   const router = useRouter();
+
+  const [post, setPost] = useState<PostProps[]>([]);
+  const [hasMore, setHasMore] = useState(true);
 
   const onLogout = async () => {
     // setAuth(null);
     const { error } = await supabase.auth.signOut();
     if (error) {
       Alert.alert("Sign out", "Erro sign out!");
+    }
+  };
+
+  const getPost = async () => {
+    //call api here
+
+    if (!hasMore) return null;
+
+    limit = limit + 10;
+
+    console.log("post fetched : ", limit);
+    let res = await fetchUserPost(limit, user!.id);
+    console.log("postFecth response : ", res);
+    if (res.success) {
+      if (post.length == res.data?.length) {
+        setHasMore(false);
+      }
+      setPost(res.data as []);
     }
   };
 
@@ -46,7 +73,34 @@ const Profile = () => {
 
   return (
     <ScreenWrapper>
-      <UserHeader user={user} router={router} handleLogout={handleLogout} />
+      <FlatList
+        data={post}
+        ListHeaderComponent={
+          <UserHeader user={user} router={router} handleLogout={handleLogout} />
+        }
+        ListHeaderComponentStyle={{ marginBottom: 30 }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listStyle}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <PostCard item={item} currentUser={user!!} router={router} />
+        )}
+        onEndReached={() => {
+          getPost();
+          console.log("reach to end");
+        }}
+        ListFooterComponent={
+          hasMore ? (
+            <View style={{ marginVertical: post.length == 0 ? 200 : 30 }}>
+              <Loading />
+            </View>
+          ) : (
+            <View style={{ marginVertical: 30 }}>
+              <Text style={styles.noPosts}>No more posts</Text>
+            </View>
+          )
+        }
+      />
     </ScreenWrapper>
   );
 };
@@ -179,5 +233,9 @@ const styles = StyleSheet.create({
     fontSize: hp(2),
     textAlign: "center",
     color: theme.colors.text,
+  },
+  listStyle: {
+    paddingTop: 20,
+    paddingHorizontal: wp(4),
   },
 });

@@ -56,6 +56,33 @@ export const fetchPost = async (limit = 10) => {
     }
 }
 
+
+
+export const fetchUserPost = async (limit = 10, userId: string) => {
+    try {
+
+        const { data, error } = await supabase
+            .from('posts')
+            .select('* , user : users (id,name,image) , postLikes (*) , comments (count)')
+            .order('created_at', { ascending: false })
+            .eq('userId', userId)
+            .limit(limit);
+
+        if (error) {
+            console.log("fetchUserPost error : ", error);
+            return { success: false, msg: 'Could not fetch user posts.' }
+        }
+
+        return { success: true, data: data }
+
+    } catch (error) {
+        console.log("fetchUserPost error : ", error);
+        return { success: false, msg: 'Could not fetch user posts.' }
+    }
+}
+
+
+
 export const fetchPostDetails = async (postId: string) => {
     try {
 
@@ -149,7 +176,7 @@ export const createComment = async (comment: any) => {
 }
 
 
-export const removeComment = async (commentId:number) => {
+export const removeComment = async (commentId: number) => {
     try {
 
         const { error } = await supabase
@@ -162,10 +189,33 @@ export const removeComment = async (commentId:number) => {
             return { success: false, msg: 'Could not delete comment.' }
         }
 
-        return { success: true, data : {commentId}}
+        return { success: true, data: { commentId } }
 
     } catch (error) {
         console.log("removeComment error : ", error);
         return { success: false, msg: 'Could not delete comment.' }
+    }
+}
+
+
+
+export const removePost = async (postId: number) => {
+    try {
+
+        const { error } = await supabase
+            .from("posts")
+            .delete()
+            .eq('id', postId)
+
+        if (error) {
+            console.log("removePost error : ", error);
+            return { success: false, msg: 'Could not delete post.' }
+        }
+
+        return { success: true, data: { postId } }
+
+    } catch (error) {
+        console.log("removePost error : ", error);
+        return { success: false, msg: 'Could not delete post.' }
     }
 }
