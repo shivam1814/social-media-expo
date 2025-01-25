@@ -27,6 +27,7 @@ import CommentItem from "@/components/CommentItem";
 import { supabase } from "@/lib/supabase";
 import { getUserData } from "@/services/userService";
 import { createNotification } from "@/services/notificationService";
+import { ItemProps } from "@/components/NotificationItem";
 
 export interface comments {
   created_at: string;
@@ -57,17 +58,31 @@ interface PostDetailProps {
 }
 
 const PostDetail = () => {
-  const { postID } = useLocalSearchParams<{ postID: string }>();
+  let { postID } = useLocalSearchParams<{ postID: string }>();
   const { user } = useAuth();
   const router = useRouter();
   const [startLoading, setStartLoading] = useState(true);
   const inputRef = useRef<TextInput>(null);
   const commentRef = useRef("");
   const [loading, setLoading] = useState(false);
+  let commentId:string = "";
 
   const [post, setPost] = useState<PostDetailProps>();
 
+  console.log("ggggggggg : ", postID);
+  console.log("type of gggggg : ", typeof postID);
+
+  let postData: ItemProps | null = null;
+  if (postID.includes("commentId")) {
+    if (postID != undefined) {
+      postData = JSON.parse(postID);
+      postID = postData?.postId!;
+      commentId = postData?.commentId!;
+    }
+  }
+
   console.log("post details : ", post);
+  console.log("post id : ", postID);
 
   const handleCommentEvent = async (payload: any) => {
     console.log("got new comment : ", payload.new);
@@ -133,16 +148,15 @@ const PostDetail = () => {
     let res = await createComment(data);
     setLoading(false);
     if (res.success) {
-      
-      if(user?.id != post?.userId) {
+      if (user?.id != post?.userId) {
         //send notification
         let notify = {
-          senderId : user?.id,
-          receiverId : post?.userId,
-          title : 'commented on post',
-          data:JSON.stringify({postId:post?.id,commentId:res?.data?.id})
-        }
-        
+          senderId: user?.id,
+          receiverId: post?.userId,
+          title: "commented on post",
+          data: JSON.stringify({ postId: post?.id, commentId: res?.data?.id }),
+        };
+        createNotification(notify);
       }
       inputRef?.current?.clear();
       commentRef.current = "";
@@ -256,6 +270,7 @@ const PostDetail = () => {
               key={comment?.id.toString()}
               item={comment}
               onDelete={onDeleteComment}
+              highlight= {comment.id.toString() == commentId}
               canDelete={user?.id == comment.userId || user?.id == post.userId}
             />
           ))}

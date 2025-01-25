@@ -10,10 +10,11 @@ import Icon from "@/assets/icons";
 interface CommentProps {
   item: comments;
   canDelete: boolean;
+  highlight:boolean
   onDelete : (item:comments) => void
 }
 
-const CommentItem = ({ item, canDelete = false ,onDelete = (item:comments) => {}}: CommentProps) => {
+const CommentItem = ({ item, canDelete = false ,onDelete = (item:comments) => {},highlight = false}: CommentProps) => {
   const createdAt = moment(item?.created_at).format("MMM D");
 
   const handleDelete = async () => {
@@ -34,7 +35,7 @@ const CommentItem = ({ item, canDelete = false ,onDelete = (item:comments) => {}
   return (
     <View style={styles.container}>
       <Avatar uri={item?.user?.image} />
-      <View style={styles.content}>
+      <View style={[styles.content,highlight && styles.highlight]}>
         <View
           style={{
             flexDirection: "row",

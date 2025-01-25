@@ -21,3 +21,25 @@ export const createNotification = async (notification: any) => {
         return { success: false, msg: 'something went wrong.' }
     }
 }
+
+export const fetchNotifications = async (receiverId: string) => {
+    try {
+
+        const { data, error } = await supabase
+            .from('notifications')
+            .select('* , sender: senderId(id , name , image)')
+            .eq('receiverId', receiverId)
+            .order("created_at", { ascending: false })
+
+        if (error) {
+            console.log("fetchNotification error : ", error);
+            return { success: false, msg: 'Could not fetch notification.' }
+        }
+
+        return { success: true, data: data }
+
+    } catch (error) {
+        console.log("fetchNotification error : ", error);
+        return { success: false, msg: 'Could not fetch notification.' }
+    }
+}
