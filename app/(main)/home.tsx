@@ -59,6 +59,7 @@ const Home = () => {
 
   const [post, setPost] = useState<PostProps[]>([]);
   const [hasMore, setHasMore] = useState(true);
+  const [notificationCount, setNotificationCount] = useState(0);
 
   const handlePostEvent = async (payLoad: any) => {
     // console.log("postPayLoad : ", payLoad);
@@ -109,6 +110,13 @@ const Home = () => {
     // }
   };
 
+  const handleNewNotification = async (payLoad: any) => {
+    console.log("got new notification : ", payLoad);
+    if (payLoad.eventType == "INSERT" && payLoad.new.id) {
+      setNotificationCount((preCount) => preCount + 1);
+    }
+  };
+
   useEffect(() => {
     let postChannel = supabase
       .channel("posts")
@@ -116,6 +124,20 @@ const Home = () => {
         "postgres_changes",
         { event: "*", schema: "public", table: "posts" },
         handlePostEvent
+      )
+      .subscribe();
+
+    let notificationChannel = supabase
+      .channel("notifications")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `receiverId=eq.${user?.id}`,
+        },
+        handleNewNotification
       )
       .subscribe();
 
@@ -136,6 +158,7 @@ const Home = () => {
 
     return () => {
       supabase.removeChannel(postChannel);
+      supabase.removeChannel(notificationChannel);
       // supabase.removeChannel(cmtChannel);
     };
   }, []);
@@ -174,13 +197,23 @@ const Home = () => {
         <View style={styles.header}>
           <Text style={styles.title}>LinkUp</Text>
           <View style={styles.icons}>
-            <Pressable onPress={() => router.push("/notifications")}>
+            <Pressable
+              onPress={() => {
+                setNotificationCount(0);
+                router.push("/notifications");
+              }}
+            >
               <Icon
                 name="heart"
                 size={hp(3.2)}
                 strokeWidth={2}
                 color={theme.colors.text}
               />
+              {notificationCount > 0 && (
+                <View style={styles.pill}>
+                  <Text style={styles.pillText}>{notificationCount}</Text>
+                </View>
+              )}
             </Pressable>
             <Pressable onPress={() => router.push("/newPost")}>
               <Icon
@@ -282,5 +315,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 20,
+    backgroundColor: theme.colors.roseLight,
+  },
+  pillText: {
+    color: "white",
+    fontSize: hp(1.2),
+    fontWeight: theme.fonts.bold,
   },
 });
