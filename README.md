@@ -1,50 +1,103 @@
-# Welcome to your Expo app 👋
+# 📌 Link-Up
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+🚀 *A real-time social media app built with React Native Expo and Supabase*
 
-## Get started
+---
 
-1. Install dependencies
+## **✨ Features**
 
-   ```bash
-   npm install
-   ```
+✅ Create, update, and delete posts\
+✅ Like and dislike posts\
+✅ Comment on posts (add, update, delete)\
+✅ Update user profiles\
+✅ Real-time notifications\
+✅ Instant updates across all devices
 
-2. Start the app
+---
 
-   ```bash
-    npx expo start
-   ```
+## **🛠️ Tech Stack**
 
-In the output, you'll find options to open the app in a
+**Frontend:** React Native Expo, TypeScript, JavaScript\
+**Backend:** Supabase\
+**Realtime:** Supabase Realtime
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## **🚀 Installation & Setup**
 
-## Get a fresh project
+1️⃣ **Clone the repository**
 
-When you're ready, run:
-
-```bash
-npm run reset-project
+```sh
+git clone https://github.com/shivam1814/social-media-expo.git
+cd linkup-expo
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2️⃣ **Install dependencies**
 
-## Learn more
+```sh
+npm install  # or yarn install
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+3️⃣ **Run the app**
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```sh
+npm run android
+or
+npm run ios
+```
 
-## Join the community
+---
 
-Join our community of developers creating universal apps.
+## **📸 Screenshots**
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+*(Add screenshots or GIFs showing the app in action)*
+
+---
+
+## **📡 Backend (Supabase Schema)**
+
+### **📝 Posts Table**
+
+| Column       | Type      | Description       |
+| ------------ | --------- | ----------------- |
+| `id`         | UUID (PK) | Unique post ID    |
+| `user_id`    | UUID (FK) | Reference to user |
+| `content`    | TEXT      | Post content      |
+| `image`      | TEXT      | Post image URL    |
+| `likes`      | JSONB     | Array of user IDs |
+| `created_at` | TIMESTAMP | Time of creation  |
+
+*(Add other relevant tables like **``**, **``**, etc.)*
+
+---
+
+## **🔔 Real-Time Updates**
+
+- Supabase **Realtime** enables live updates across all devices.
+- Whenever a user likes a post, comments, or updates a profile, all connected devices receive instant updates.
+
+---
+
+## **📌 To-Do & Future Improvements**
+
+### Two major things will implement
+1. video and audio call (will use webRTC for it)
+2. one to one user and group chat
+
+---
+
+## **🤝 Contributing**
+
+1. Fork the repo
+2. Create a new branch (`feat/amazing-feature`)
+3. Commit your changes (`git commit -m "Added an amazing feature"`)
+4. Push to the branch (`git push origin feat/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## **📬 Contact**
+
+📧 Email: [mandaliashivam72@gmail.com](mailto\:mandaliashivam72@gmail.com)\
+🐦 Twitter: [@shivam_mandalia](https://x.com/shivam_mandalia)\
+💼 LinkedIn: [Shivam Mandalia](https://www.linkedin.com/in/shivam-mandalia/)
