@@ -50,7 +50,21 @@ npm run ios
 
 ## **📸 Screenshots**
 
-*(Add screenshots or GIFs showing the app in action)*
+<p align="start">
+  <img src="screenshot/Screenshot_1739711383.png" width="80">
+  <img src="screenshot/Screenshot_1739711410.png" width="80">
+  <img src="screenshot/Screenshot_1739711420.png" width="80">
+  <img src="screenshot/Screenshot_1739711536.png" width="80">
+  <img src="screenshot/Screenshot_1739711634.png" width="80">
+  <img src="screenshot/Screenshot_1739711640.png" width="80">
+  <img src="screenshot/Screenshot_1739711686.png" width="80">
+  <img src="screenshot/Screenshot_1739711840.png" width="80">
+  <img src="screenshot/Screenshot_1739711851.png" width="80">
+  <img src="screenshot/Screenshot_1739711929.png" width="80">
+  <img src="screenshot/Screenshot_1739712347.png" width="80">
+  <img src="screenshot/Screenshot_1739712477.png" width="80">
+</p>
+
 
 ---
 
@@ -66,8 +80,6 @@ npm run ios
 | `image`      | TEXT      | Post image URL    |
 | `likes`      | JSONB     | Array of user IDs |
 | `created_at` | TIMESTAMP | Time of creation  |
-
-*(Add other relevant tables like **``**, **``**, etc.)*
 
 ---
 
