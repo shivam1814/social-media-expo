@@ -70,7 +70,6 @@ const PostDetail = () => {
   const [post, setPost] = useState<PostDetailProps>();
 
   console.log("ggggggggg : ", postID);
-  console.log("type of gggggg : ", typeof postID);
 
   let postData: ItemProps | null = null;
   if (postID.includes("commentId")) {
