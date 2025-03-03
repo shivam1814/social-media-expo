@@ -69,17 +69,9 @@ npm run ios
 ---
 
 ## **📡 Backend (Supabase Schema)**
-
-### **📝 Posts Table**
-
-| Column       | Type      | Description       |
-| ------------ | --------- | ----------------- |
-| `id`         | UUID (PK) | Unique post ID    |
-| `user_id`    | UUID (FK) | Reference to user |
-| `content`    | TEXT      | Post content      |
-| `image`      | TEXT      | Post image URL    |
-| `likes`      | JSONB     | Array of user IDs |
-| `created_at` | TIMESTAMP | Time of creation  |
+<p align="start">
+  <img src="screenshot/screenshot_supa.png" width="50%">
+</p>
 
 ---
 
